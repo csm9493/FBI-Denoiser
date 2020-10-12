@@ -27,11 +27,10 @@ class TrdataLoader():
         self.args = _args
         
         self.data = h5py.File(self.tr_data_dir, "r")
-        
-        if self.args.loss_function == 'MSE':
-            self.noisy_arr = self.data["noisy_images"]
-            self.clean_arr = self.data["clean_images"]
-            self.num_data = self.clean_arr.shape[0]
+
+        self.noisy_arr = self.data["noisy_images"]
+        self.clean_arr = self.data["clean_images"]
+        self.num_data = self.clean_arr.shape[0]
             
         print ('num of training patches : ', self.num_data)
 
@@ -41,7 +40,7 @@ class TrdataLoader():
     def __getitem__(self, index):
         
         # random crop
-        rand = random.randrange(1,10000)
+        
 
         if self.args.noise_type == 'Gaussian' or self.args.noise_type == 'Poisson-Gaussian':
 
@@ -49,6 +48,8 @@ class TrdataLoader():
             noisy_img = self.noisy_arr[index,:,:]
             
             if self.args.data_type == 'Grayscale':
+                
+                rand = random.randrange(1,10000)
                 
                 clean_patch = image.extract_patches_2d(image = clean_img ,patch_size = (self.args.crop_size, self.args.crop_size), 
                                              max_patches = 1, random_state = rand)
@@ -65,20 +66,28 @@ class TrdataLoader():
                     noisy_patch = np.flipud(noisy_patch)
                     noisy_patch = np.flipud(noisy_patch)
                     
-#             else:
-#                 ## rawRGB
+            else:
+                
+                rand_x = random.randrange(0, (clean_img.shape[0] - self.args.crop_size -1) // 2)
+                rand_y = random.randrange(0, (clean_img.shape[1] - self.args.crop_size -1) // 2)
+                
+                clean_patch = clean_img[rand_x*2 : rand_x*2 + self.args.crop_size, rand_y*2 : rand_y*2 + self.args.crop_size].reshape(1, self.args.crop_size, self.args.crop_size)
+                noisy_patch = clean_img[rand_x*2 : rand_x*2 + self.args.crop_size, rand_y*2 : rand_y*2 + self.args.crop_size].reshape(1, self.args.crop_size, self.args.crop_size)
+                
             
-            if self.args.loss_function == 'MSE':
+            if self.args.loss_function == 'MSE' or self.args.loss_function == 'N2V':
             
                 source = torch.from_numpy(noisy_patch)
                 target = torch.from_numpy(clean_patch)
                 
                 return source, target
+            
+            elif self.args.loss_function == 'MSE_Affine':
                 
-            elif self.args.loss_function == 'N2V':
+                source = torch.from_numpy(noisy_patch)
+                target = torch.from_numpy(clean_patch)
                 
-                source = torch.from_numpy(np.transpose(noisy_patch, (2,0,1)).copy())
-                target = torch.from_numpy(np.transpose(noisy_patch, (2,0,1)).copy())
+                target = torch.cat([source,target], dim = 0)
                 
                 return source, target
 
@@ -96,6 +105,7 @@ class TedataLoader():
         self.clean_arr = self.data["clean_images"]
         self.noisy_arr = self.data["noisy_images"]
         self.num_data = self.noisy_arr.shape[0]
+        self.args = args
         
         print ('num of test images : ', self.num_data)
         
@@ -110,6 +120,9 @@ class TedataLoader():
 
         source = torch.from_numpy(source.reshape(1,source.shape[0],source.shape[1])).cuda()
         target = torch.from_numpy(target.reshape(1,target.shape[0],target.shape[1])).cuda()
+        
+        if self.args.loss_function == 'MSE_Affine':
+            target = torch.cat([source,target], dim = 0)
 
         return source, target
     

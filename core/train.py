@@ -7,7 +7,7 @@ import scipy.io as sio
 from .utils import TedataLoader, TrdataLoader, get_PSNR, get_SSIM
 from .loss_functions import mse_bias, mse_affine, estimated_bias, estimated_affine
 from .logger import Logger
-from .models import New_model, New_model_ablation
+from .models import New_model, New_model_ablation, FC_AIDE
 
 import time
 
@@ -41,7 +41,7 @@ class Train(object):
         elif self.args.loss_function == 'N2V':
             self.loss = mse_bias
             num_output_channel = 1
-        elif self.args.loss_function == 'affine':
+        elif self.args.loss_function == 'MSE_Affine':
             self.loss = mse_affine
             num_output_channel = 2
         
@@ -49,6 +49,8 @@ class Train(object):
             self.model = New_model_ablation(channel = 1, output_channel = num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = 'case1')
         elif self.args.model_type == 'case2':
             self.model = New_model_ablation(channel = 1, output_channel = num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = 'case2')
+        elif self.args.model_type == 'FC-AIDE':
+            self.model = FC_AIDE(channel = 1, output_channel = num_output_channel, filters = 64, num_of_layers=10)
         else:
             self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers)
             
@@ -68,7 +70,7 @@ class Train(object):
     
     def get_X_hat(self, Z, output):
 
-        X_hat = output[:,:self.channel] * Z + output[:,self.channel:]
+        X_hat = output[:,:1] * Z + output[:,1:]
             
         return X_hat
         
@@ -92,19 +94,25 @@ class Train(object):
 
                 # Denoise
                 output = self.model(source)
+                
+                loss = self.loss(output, target)
+
+                loss = loss.cpu().numpy()
 
                 # Update loss
                 if self.args.loss_function == 'MSE':
-                    loss = self.loss(output, target)
-                    
-                    loss = loss.cpu().numpy()
                     output = output.cpu().numpy()
-
                     X_hat = np.clip(output, 0, 1)
                     X = target.cpu().numpy()
+                    
+                elif self.args.loss_function == 'MSE_Affine':
+                    
+                    Z = target[:,:1]
+                    X = target[:,1:].cpu().numpy()
+                    X_hat = np.clip(self.get_X_hat(Z,output).cpu().numpy(), 0, 1)
 
                 inference_time = time.time()-start
-
+                
                 loss_arr.append(loss)
                 psnr_arr.append(get_PSNR(X[0], X_hat[0]))
                 ssim_arr.append(get_SSIM(X[0], X_hat[0]))
@@ -159,8 +167,7 @@ class Train(object):
                 # Denoise image
                 source_denoised = self.model(source)
                 
-                if self.args.loss_function == 'MSE':
-                    loss = self.loss(source_denoised, target)
+                loss = self.loss(source_denoised, target)
                     
                 loss.backward()
                 self.optim.step()

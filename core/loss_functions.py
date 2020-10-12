@@ -23,11 +23,11 @@ def estimated_bias(output, target):
     return loss
 
 def mse_affine(output, target):
-
+    
     a = output[:,0]
     b = output[:,1]
-    X = target[:,0]
-    Z = target[:,1]
+    Z = target[:,0]
+    X = target[:,1]
     
     # E[(X - (aZ+b))**2]
     loss = torch.mean((X - (a*Z+b))**2)

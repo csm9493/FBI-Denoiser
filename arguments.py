@@ -15,7 +15,12 @@ def get_args():
     parser.add_argument('--model-type', default='final', type=str, required=False,
                         choices=['case1',
                                  'case2',
+                                 'case3',
+                                 'case4',
+                                 'case5',
                                  'final',
+                                 'final_mul',
+                                 'attention',
                                 'FC-AIDE'],
                         help='(default=%(default)s)')
     parser.add_argument('--data-type', default='RawRGB', type=str, required=False,
@@ -39,7 +44,9 @@ def get_args():
     
     parser.add_argument('--num-layers', default=8, type=int, help='(default=%(default)f)')
     parser.add_argument('--num-filters', default=64, type=int, help='(default=%(default)f)')
+    parser.add_argument('--mul', default=1, type=int, help='(default=%(default)f)')
     
     args=parser.parse_args()
     return args
+
 

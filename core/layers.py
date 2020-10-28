@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
+import torch.nn.functional as F
 
 class New1(nn.Module):
     def __init__(self, in_ch, out_ch):
@@ -42,132 +43,206 @@ class New3(nn.Module):
         return x
     
 class Residual_module(nn.Module):
-    def __init__(self, in_ch):
+    def __init__(self, in_ch, mul = 1):
         super(Residual_module, self).__init__()
         
-        self.activation1 = nn.PReLU(in_ch,0).cuda()
+        self.activation1 = nn.PReLU(in_ch*mul,0).cuda()
         self.activation2 = nn.PReLU(in_ch,0).cuda()
             
-        self.conv1_1by1 = nn.Conv2d(in_channels=in_ch, out_channels=in_ch, kernel_size = 1)
-        self.conv2_1by1 = nn.Conv2d(in_channels=in_ch, out_channels=in_ch, kernel_size = 1)
+        self.conv1_1by1 = nn.Conv2d(in_channels=in_ch, out_channels=in_ch*mul, kernel_size = 1)
+        self.conv2_1by1 = nn.Conv2d(in_channels=in_ch*mul, out_channels=in_ch, kernel_size = 1)
 
     def forward(self, input):
 
-        output_residual = self.activation1(input)
-        output_residual = self.conv1_1by1(output_residual)
-        output_residual = self.activation2(output_residual)
+        output_residual = self.conv1_1by1(input)
+        output_residual = self.activation1(output_residual)
         output_residual = self.conv2_1by1(output_residual)
         
-        output = input + output_residual
+        output = (input + output_residual) / 2.
+        output = self.activation2(output)
         
         return output
     
 class New1_layer(nn.Module):
-    def __init__(self, in_ch, out_ch, case = 'final'):
+    def __init__(self, in_ch, out_ch, case = 'final', mul = 1):
         super(New1_layer, self).__init__()
-        
-        self.new1 = New1(in_ch,out_ch).cuda()
-        if case != 'case1':
-            self.residual_module = Residual_module(out_ch)
-        
         self.case = case
+        self.new1 = New1(in_ch,out_ch).cuda()
+        if case == 'case1' or case == 'case2' or case == 'final':
+            self.residual_module = Residual_module(out_ch, mul)
+            
+        self.activation_new1 = nn.PReLU(in_ch,0).cuda()
+        
 
     def forward(self, x):
         
         
-        if self.case == 'case1': # plain NN architecture wo residual module and residual connection
+        if self.case == 'case1' or self.case =='case2' or self.case == 'final': # plain NN architecture wo residual module and residual connection
             
             output_new1 = self.new1(x)
-            
-            return output_new1
-        
-        elif self.case == 'case2': # plain NN architecture wo residual connection
-            
-            output_new1 = self.new1(x)
+            output_new1 = self.activation_new1(output_new1)
             output = self.residual_module(output_new1)
-            
-            return output
-            
+
+            return output, output_new1
+
         else: # final model
         
             output_new1 = self.new1(x)
-            output = self.residual_module(output_new1)
+            output = self.activation_new1(output_new1)
 
             return output, output_new1
    
 class New2_layer(nn.Module):
-    def __init__(self, in_ch, out_ch, case = 'final'):
+    def __init__(self, in_ch, out_ch, case = 'final', mul = 1):
         super(New2_layer, self).__init__()
         
-        self.new2 = New2(in_ch,out_ch).cuda()
-        if case != 'case1':
-            self.residual_module = Residual_module(out_ch)
-        self.activation_new2 = nn.PReLU(in_ch,0).cuda()
-        
         self.case = case
+        
+        self.new2 = New2(in_ch,out_ch).cuda()
+        self.activation_new1 = nn.PReLU(in_ch,0).cuda()
+        if case == 'case1' or case == 'case2' or case == 'final':
+            self.residual_module = Residual_module(out_ch, mul)
+        if case == 'case1' or case == 'case3' or case == 'final':
+            self.activation_new2 = nn.PReLU(in_ch,0).cuda()
+        
 
     def forward(self, x, output_new):
         
-        if self.case == 'case1': # plain NN architecture wo residual module and residual connection
+        if self.case == 'case1': #
             
-            output_new2 = self.activation_new2(x)
-            output_new2 = self.new2(output_new2)
+            output_new2 = self.new2(output_new)
+            output_new2 = self.activation_new1(output_new2)
 
-            return output_new2
+            output = (output_new2 + x) / 2.
+            output = self.activation_new2(output)
+            output = self.residual_module(output)
+
+            return output, output_new2
+            
+
+        elif self.case == 'case2': #
+            
+            output_new2 = self.new2(x)
+            output_new2 = self.activation_new1(output_new2)
+
+            output = output_new2
+            output = self.residual_module(output)
+
+            return output, output_new2
         
-        elif self.case == 'case2': # plain NN architecture wo residual connection
+        elif self.case == 'case3': #
             
-            output_new2 = self.activation_new2(x)
-            output_new2 = self.new2(output_new2)
-            output_new2 = self.residual_module(output_new2)
+            output_new2 = self.new2(output_new)
+            output_new2 = self.activation_new1(output_new2)
 
-            return output_new2
+            output = (output_new2 + x) / 2.
+            output = self.activation_new2(output)
+
+            return output, output_new2
+
+        elif self.case == 'case4': #
+            
+            output_new2 = self.new2(x)
+            output_new2 = self.activation_new1(output_new2)
+
+            output = output_new2
+            
+            return output, output_new2
+        
+        elif self.case == 'case5': #
+            
+            output_new2 = self.new2(x)
+            output_new2 = self.activation_new1(output_new2)
+
+            output = output_new2
+            
+            return output, output_new2
         
         else:
 
-            output_new2 = self.activation_new2(output_new)
-            output_new2 = self.new2(output_new2)
+            output_new2 = self.new2(output_new)
+            output_new2 = self.activation_new1(output_new2)
 
-            output = output_new2 + x
+            output = (output_new2 + x) / 2.
+            output = self.activation_new2(output)
             output = self.residual_module(output)
 
             return output, output_new2
             
     
 class New3_layer(nn.Module):
-    def __init__(self, in_ch, out_ch, dilated_value=3, case = 'final'):
+    def __init__(self, in_ch, out_ch, dilated_value=3, case = 'final', mul = 1):
         super(New3_layer, self).__init__()
         
-        self.new3 = New3(in_ch,out_ch,dilated_value).cuda()
-        if case != 'case1':
-            self.residual_module = Residual_module(out_ch)
-        self.activation_new3 = nn.PReLU(in_ch,0).cuda()
-        
         self.case = case
+        
+        self.new3 = New3(in_ch,out_ch,dilated_value).cuda()
+        self.activation_new1 = nn.PReLU(in_ch,0).cuda()
+        if case == 'case1' or case == 'case2' or case == 'final':
+            self.residual_module = Residual_module(out_ch, mul)
+        if case == 'case1' or case == 'case3' or case == 'final':
+            self.activation_new2 = nn.PReLU(in_ch,0).cuda()
+        
 
     def forward(self, x, output_new):
         
-        if self.case == 'case1':
+        if self.case == 'case1': #
             
-            output_new3 = self.activation_new3(x)
-            output_new3 = self.new3(output_new3)
+            output_new3 = self.new3(output_new)
+            output_new3 = self.activation_new1(output_new3)
 
-            return output_new3
-            
-        elif self.case == 'case2':
-            
-            output_new3 = self.activation_new3(x)
-            output_new3 = self.new3(output_new3)
-            output_new3 = self.residual_module(output_new3)
+            output = (output_new3 + x) / 2.
+            output = self.activation_new2(output)
+            output = self.residual_module(output)
 
-            return output_new3
+            return output, output_new3
+            
+
+        elif self.case == 'case2': #
+            
+            output_new3 = self.new3(x)
+            output_new3 = self.activation_new1(output_new3)
+
+            output = output_new3
+            output = self.residual_module(output)
+
+            return output, output_new3
         
-        else: 
+        elif self.case == 'case3': #
+            
+            output_new3 = self.new3(output_new)
+            output_new3 = self.activation_new1(output_new3)
 
-            output_new3 = self.activation_new3(output_new)
-            output_new3 = self.new3(output_new3)
+            output = (output_new3 + x) / 2.
+            output = self.activation_new2(output)
 
-            output = output_new3 + x
+            return output, output_new3
+
+        elif self.case == 'case4': #
+            
+            output_new3 = self.new3(x)
+            output_new3 = self.activation_new1(output_new3)
+
+            output = output_new3
+            
+            return output, output_new3
+        
+        elif self.case == 'case5': #
+            
+            output_new3 = self.new3(x)
+            output_new3 = self.activation_new1(output_new3)
+
+            output = output_new3
+            
+            return output, output_new3
+        
+        else:
+
+            output_new3 = self.new3(output_new)
+            output_new3 = self.activation_new1(output_new3)
+
+            output = (output_new3 + x) / 2.
+            output = self.activation_new3(output)
             output = self.residual_module(output)
 
             return output, output_new3
@@ -294,19 +369,4 @@ class QED_layer(nn.Module):
         outputs.append(self.d2(out_d2))
         
         return outputs
-    
-class Average_layer(nn.Module):
-    def __init__(self, in_ch, activation = 'PReLU'):
-        super(Average_layer, self).__init__()
-        
-        if activation == 'ReLU':
-            self.activation = nn.ReLU().cuda()
-        else:
-            self.activation = nn.PReLU(in_ch,0).cuda()
 
-    def forward(self, inputs):
-
-        mean = torch.mean(torch.stack(inputs), dim=0)
-        output = self.activation(mean)
-        
-        return output

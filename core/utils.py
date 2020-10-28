@@ -58,12 +58,12 @@ class TrdataLoader():
                 
                             # Random horizontal flipping
                 if random.random() > 0.5:
-                    clean_img = np.fliplr(clean_img)
-                    clean_img = np.fliplr(clean_img)
+                    clean_patch = np.fliplr(clean_patch)
+                    noisy_patch = np.fliplr(noisy_patch)
 
                 # Random vertical flipping
                 if random.random() > 0.5:
-                    noisy_patch = np.flipud(noisy_patch)
+                    clean_patch = np.flipud(clean_patch)
                     noisy_patch = np.flipud(noisy_patch)
                     
             else:
@@ -72,20 +72,20 @@ class TrdataLoader():
                 rand_y = random.randrange(0, (clean_img.shape[1] - self.args.crop_size -1) // 2)
                 
                 clean_patch = clean_img[rand_x*2 : rand_x*2 + self.args.crop_size, rand_y*2 : rand_y*2 + self.args.crop_size].reshape(1, self.args.crop_size, self.args.crop_size)
-                noisy_patch = clean_img[rand_x*2 : rand_x*2 + self.args.crop_size, rand_y*2 : rand_y*2 + self.args.crop_size].reshape(1, self.args.crop_size, self.args.crop_size)
+                noisy_patch = noisy_img[rand_x*2 : rand_x*2 + self.args.crop_size, rand_y*2 : rand_y*2 + self.args.crop_size].reshape(1, self.args.crop_size, self.args.crop_size)
                 
             
             if self.args.loss_function == 'MSE' or self.args.loss_function == 'N2V':
             
-                source = torch.from_numpy(noisy_patch)
-                target = torch.from_numpy(clean_patch)
+                source = torch.from_numpy(noisy_patch.copy())
+                target = torch.from_numpy(clean_patch.copy())
                 
                 return source, target
             
             elif self.args.loss_function == 'MSE_Affine':
                 
-                source = torch.from_numpy(noisy_patch)
-                target = torch.from_numpy(clean_patch)
+                source = torch.from_numpy(noisy_patch.copy())
+                target = torch.from_numpy(clean_patch.copy())
                 
                 target = torch.cat([source,target], dim = 0)
                 
@@ -138,6 +138,7 @@ def get_SSIM(X, X_hat):
     test_SSIM = measure.compare_ssim(np.transpose(X, (1,2,0)), np.transpose(X_hat, (1,2,0)), data_range=X.max() - X.min(), multichannel=True)
 
     return test_SSIM
+
 
 
 

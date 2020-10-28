@@ -7,7 +7,8 @@ import scipy.io as sio
 from .utils import TedataLoader, TrdataLoader, get_PSNR, get_SSIM
 from .loss_functions import mse_bias, mse_affine, estimated_bias, estimated_affine
 from .logger import Logger
-from .models import New_model, New_model_ablation, FC_AIDE
+from .models import New_model
+from .fcaide import FC_AIDE
 
 import time
 
@@ -45,14 +46,11 @@ class Train(object):
             self.loss = mse_affine
             num_output_channel = 2
         
-        if self.args.model_type == 'case1':
-            self.model = New_model_ablation(channel = 1, output_channel = num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = 'case1')
-        elif self.args.model_type == 'case2':
-            self.model = New_model_ablation(channel = 1, output_channel = num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = 'case2')
-        elif self.args.model_type == 'FC-AIDE':
+        
+        if self.args.model_type == 'FC-AIDE':
             self.model = FC_AIDE(channel = 1, output_channel = num_output_channel, filters = 64, num_of_layers=10)
         else:
-            self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers)
+            self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = self.args.model_type)
             
         self.model = self.model.cuda()
             
@@ -182,5 +180,6 @@ class Train(object):
                 self.save_model()
                 
             self.scheduler.step()
+
 
 

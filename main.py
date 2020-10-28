@@ -29,11 +29,14 @@ if __name__ == '__main__':
             
             tr_data_dir = './data/train_fivek_rawRGB_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
             te_data_dir = './data/test_fivek_rawRGB_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
+            
+        print ('tr data dir : ', tr_data_dir)
+        print ('te data dir : ', te_data_dir)
     
     if args.model_type == 'FC-AIDE':
         save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(10) + '_filters_x' + str(64)
     else:
-        save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(args.num_layers) + '_filters_x' + str(args.num_filters)
+        save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(args.num_layers) + '_filters_x' + str(args.num_filters)+ '_cropsize_' + str(args.crop_size)
     
     print ('save_file_name : ', save_file_name)
     

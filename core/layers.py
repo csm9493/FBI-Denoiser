@@ -242,7 +242,7 @@ class New3_layer(nn.Module):
             output_new3 = self.activation_new1(output_new3)
 
             output = (output_new3 + x) / 2.
-            output = self.activation_new3(output)
+            output = self.activation_new2(output)
             output = self.residual_module(output)
 
             return output, output_new3

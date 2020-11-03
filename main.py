@@ -35,6 +35,8 @@ if __name__ == '__main__':
     
     if args.model_type == 'FC-AIDE':
         save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(10) + '_filters_x' + str(64)
+    elif args.model_type == 'DBSN':
+        save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type)
     else:
         save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(args.num_layers) + '_filters_x' + str(args.num_filters)+ '_cropsize_' + str(args.crop_size)
     

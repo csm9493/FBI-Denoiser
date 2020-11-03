@@ -9,6 +9,7 @@ from .loss_functions import mse_bias, mse_affine, estimated_bias, estimated_affi
 from .logger import Logger
 from .models import New_model
 from .fcaide import FC_AIDE
+from .dbsn import DBSN_Model
 
 import time
 
@@ -49,6 +50,19 @@ class Train(object):
         
         if self.args.model_type == 'FC-AIDE':
             self.model = FC_AIDE(channel = 1, output_channel = num_output_channel, filters = 64, num_of_layers=10)
+        elif self.args.model_type == 'final_mul':
+            self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, mul = self.args.mul)
+        elif self.args.model_type == 'DBSN':
+            self.model = DBSN_Model(in_ch = 1,
+                            out_ch = num_output_channel,
+                            mid_ch = 96,
+                            blindspot_conv_type = 'Mask',
+                            blindspot_conv_bias = True,
+                            br1_block_num = 8,
+                            br1_blindspot_conv_ks =3,
+                            br2_block_num = 8,
+                            br2_blindspot_conv_ks = 5,
+                            activate_fun = 'Relu')
         else:
             self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = self.args.model_type)
             
@@ -91,7 +105,12 @@ class Train(object):
                 target = target.cuda()
 
                 # Denoise
-                output = self.model(source)
+
+                # Denoise image
+                if self.args.model_type == 'DBSN':
+                    output, _ = self.model(source)
+                else:
+                    output = self.model(source)
                 
                 loss = self.loss(output, target)
 
@@ -108,6 +127,10 @@ class Train(object):
                     Z = target[:,:1]
                     X = target[:,1:].cpu().numpy()
                     X_hat = np.clip(self.get_X_hat(Z,output).cpu().numpy(), 0, 1)
+                    
+                elif  self.args.loss_function == 'N2V':
+                    X = target[:,1:].cpu().numpy()
+                    X_hat = np.clip(output.cpu().numpy(), 0, 1)
 
                 inference_time = time.time()-start
                 
@@ -161,9 +184,12 @@ class Train(object):
 
                 source = source.cuda()
                 target = target.cuda()
-
+                
                 # Denoise image
-                source_denoised = self.model(source)
+                if self.args.model_type == 'DBSN':
+                    source_denoised, _ = self.model(source)
+                else:
+                    source_denoised = self.model(source)
                 
                 loss = self.loss(source_denoised, target)
                     
@@ -180,6 +206,5 @@ class Train(object):
                 self.save_model()
                 
             self.scheduler.step()
-
 
 

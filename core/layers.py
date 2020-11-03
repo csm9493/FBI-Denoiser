@@ -63,12 +63,63 @@ class Residual_module(nn.Module):
         
         return output
     
+class Gaussian(nn.Module):
+    def forward(self,input):
+        return torch.exp(-torch.mul(input,input))
+    
+
+class Receptive_attention(nn.Module):
+    def __init__(self, in_ch, at_type = 'softmax'):
+        super(Receptive_attention, self).__init__()
+        
+        self.activation1 = nn.ReLU().cuda()
+        self.activation2 = nn.ReLU().cuda()
+        self.activation3 = nn.PReLU(in_ch,0).cuda()
+            
+        self.conv1_1by1 = nn.Conv2d(in_channels=in_ch, out_channels=in_ch*4, kernel_size = 1)
+        self.conv2_1by1 = nn.Conv2d(in_channels=in_ch*4, out_channels=in_ch*4, kernel_size = 1)
+        self.conv3_1by1 = nn.Conv2d(in_channels=in_ch*4, out_channels=9, kernel_size = 1)
+        self.at_type = at_type
+        if at_type == 'softmax':
+            self.softmax = nn.Softmax()
+        else:
+            self.gaussian = Gaussian()
+            self.sigmoid = nn.Sigmoid()
+            
+
+    def forward(self, input, receptive):
+
+        if self.at_type == 'softmax':
+            output_residual = self.conv1_1by1(input)
+            output_residual = self.activation1(output_residual)
+            output_residual = self.conv2_1by1(output_residual)
+            output_residual = self.activation2(output_residual)
+            output_residual = self.conv3_1by1(output_residual)
+            output_residual = F.adaptive_avg_pool2d(output_residual, (1, 1))
+    #         output_residual = self.Gaussian(output_residual)
+            output_residual = self.softmax(output_residual).permute((1,0,2,3)).unsqueeze(-1)
+        else:
+            
+            output_residual = self.conv1_1by1(input)
+            output_residual = self.activation1(output_residual)
+            output_residual = self.conv2_1by1(output_residual)
+            output_residual = self.activation2(output_residual)
+            output_residual = self.conv3_1by1(output_residual)
+            output_residual = F.adaptive_avg_pool2d(output_residual, (1, 1))
+            output_residual = self.gaussian(output_residual)
+            output_residual = self.sigmoid(output_residual).permute((1,0,2,3)).unsqueeze(-1)
+        
+        output = torch.sum(receptive * output_residual, dim = 0)
+        output = self.activation3(output)
+        
+        return output
+    
 class New1_layer(nn.Module):
     def __init__(self, in_ch, out_ch, case = 'final', mul = 1):
         super(New1_layer, self).__init__()
         self.case = case
         self.new1 = New1(in_ch,out_ch).cuda()
-        if case == 'case1' or case == 'case2' or case == 'final':
+        if case == 'case1' or case == 'case2' or case == 'case7' or case == 'final':
             self.residual_module = Residual_module(out_ch, mul)
             
         self.activation_new1 = nn.PReLU(in_ch,0).cuda()
@@ -77,7 +128,7 @@ class New1_layer(nn.Module):
     def forward(self, x):
         
         
-        if self.case == 'case1' or self.case =='case2' or self.case == 'final': # plain NN architecture wo residual module and residual connection
+        if self.case == 'case1' or self.case =='case2'  or self.case =='case7' or self.case == 'final': # plain NN architecture wo residual module and residual connection
             
             output_new1 = self.new1(x)
             output_new1 = self.activation_new1(output_new1)
@@ -100,9 +151,9 @@ class New2_layer(nn.Module):
         
         self.new2 = New2(in_ch,out_ch).cuda()
         self.activation_new1 = nn.PReLU(in_ch,0).cuda()
-        if case == 'case1' or case == 'case2' or case == 'final':
+        if case == 'case1' or case == 'case2' or case == 'case7' or case == 'final':
             self.residual_module = Residual_module(out_ch, mul)
-        if case == 'case1' or case == 'case3' or case == 'final':
+        if case == 'case1' or case == 'case3' or case == 'case6' or case == 'final':
             self.activation_new2 = nn.PReLU(in_ch,0).cuda()
         
 
@@ -120,7 +171,7 @@ class New2_layer(nn.Module):
             return output, output_new2
             
 
-        elif self.case == 'case2': #
+        elif self.case == 'case2' or self.case == 'case7': #
             
             output_new2 = self.new2(x)
             output_new2 = self.activation_new1(output_new2)
@@ -130,7 +181,7 @@ class New2_layer(nn.Module):
 
             return output, output_new2
         
-        elif self.case == 'case3': #
+        elif self.case == 'case3' or self.case == 'case6': #
             
             output_new2 = self.new2(output_new)
             output_new2 = self.activation_new1(output_new2)
@@ -149,7 +200,7 @@ class New2_layer(nn.Module):
             
             return output, output_new2
         
-        elif self.case == 'case5': #
+        elif self.case == 'case5' : #
             
             output_new2 = self.new2(x)
             output_new2 = self.activation_new1(output_new2)
@@ -178,9 +229,9 @@ class New3_layer(nn.Module):
         
         self.new3 = New3(in_ch,out_ch,dilated_value).cuda()
         self.activation_new1 = nn.PReLU(in_ch,0).cuda()
-        if case == 'case1' or case == 'case2' or case == 'final':
+        if case == 'case1' or case == 'case2'  or case == 'case7' or case == 'final':
             self.residual_module = Residual_module(out_ch, mul)
-        if case == 'case1' or case == 'case3' or case == 'final':
+        if case == 'case1' or case == 'case3' or case == 'case6'or case == 'final':
             self.activation_new2 = nn.PReLU(in_ch,0).cuda()
         
 
@@ -198,7 +249,7 @@ class New3_layer(nn.Module):
             return output, output_new3
             
 
-        elif self.case == 'case2': #
+        elif self.case == 'case2' or self.case == 'case7': #
             
             output_new3 = self.new3(x)
             output_new3 = self.activation_new1(output_new3)
@@ -208,7 +259,7 @@ class New3_layer(nn.Module):
 
             return output, output_new3
         
-        elif self.case == 'case3': #
+        elif self.case == 'case3' or self.case == 'case6': #
             
             output_new3 = self.new3(output_new)
             output_new3 = self.activation_new1(output_new3)
@@ -369,4 +420,3 @@ class QED_layer(nn.Module):
         outputs.append(self.d2(out_d2))
         
         return outputs
-

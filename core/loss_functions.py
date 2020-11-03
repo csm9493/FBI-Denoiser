@@ -3,11 +3,11 @@ import torch.nn as nn
 
 def mse_bias(output, target):
     
-    X = output
-    b = target
+    a = output[:,0]
+    Z = target[:,0]
     
     # E[(X - b)**2]
-    loss = torch.mean((target - output)**2)
+    loss = torch.mean((a - Z)**2)
     
     return loss
 

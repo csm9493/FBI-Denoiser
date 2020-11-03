@@ -75,14 +75,14 @@ class TrdataLoader():
                 noisy_patch = noisy_img[rand_x*2 : rand_x*2 + self.args.crop_size, rand_y*2 : rand_y*2 + self.args.crop_size].reshape(1, self.args.crop_size, self.args.crop_size)
                 
             
-            if self.args.loss_function == 'MSE' or self.args.loss_function == 'N2V':
+            if self.args.loss_function == 'MSE':
             
                 source = torch.from_numpy(noisy_patch.copy())
                 target = torch.from_numpy(clean_patch.copy())
                 
                 return source, target
             
-            elif self.args.loss_function == 'MSE_Affine':
+            elif self.args.loss_function == 'MSE_Affine' or self.args.loss_function == 'N2V':
                 
                 source = torch.from_numpy(noisy_patch.copy())
                 target = torch.from_numpy(clean_patch.copy())
@@ -121,7 +121,7 @@ class TedataLoader():
         source = torch.from_numpy(source.reshape(1,source.shape[0],source.shape[1])).cuda()
         target = torch.from_numpy(target.reshape(1,target.shape[0],target.shape[1])).cuda()
         
-        if self.args.loss_function == 'MSE_Affine':
+        if self.args.loss_function == 'MSE_Affine' or self.args.loss_function == 'N2V':
             target = torch.cat([source,target], dim = 0)
 
         return source, target
@@ -138,7 +138,6 @@ def get_SSIM(X, X_hat):
     test_SSIM = measure.compare_ssim(np.transpose(X, (1,2,0)), np.transpose(X_hat, (1,2,0)), data_range=X.max() - X.min(), multichannel=True)
 
     return test_SSIM
-
 
 
 

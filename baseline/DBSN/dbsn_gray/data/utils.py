@@ -35,7 +35,7 @@ class TrdataLoader():
         print ('num of training patches : ', self.num_data)
 
     def __len__(self):
-        return 16
+        return self.num_data
     
     def __getitem__(self, index):
         
@@ -94,7 +94,7 @@ class TedataLoader():
         print ('num of test images : ', self.num_data)
         
     def __len__(self):
-        return 4
+        return self.num_data
     
     def __getitem__(self, index):
         """Retrieves image from folder and corrupts it."""

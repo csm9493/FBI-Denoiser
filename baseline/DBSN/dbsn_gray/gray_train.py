@@ -18,7 +18,7 @@ from data.utils import TrdataLoader, TedataLoader, get_PSNR, get_SSIM
 from torch.utils.data import DataLoader
 
 import matplotlib.pyplot as plt
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 
 from gray_options import opt
 from net.backbone_net import DBSN_Model
@@ -49,16 +49,32 @@ def main(args):
 
             tr_data_dir = '../../../data/train_BSD300_grayscale_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
             te_data_dir = '../../../data/test_BSD68_grayscale_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
+            
+        elif args.data_type == 'RawRGB' and args.data_name == 'SIDD':
+
+            tr_data_dir = '../../../data/train_SIDD_25000_2.hdf5'
+            te_data_dir = '../../../data/test_SIDD.hdf5'
+            
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)
+            
+        elif args.data_type == 'RawRGB' and args.data_name == 'DND':
+
+            tr_data_dir = '../../../data/train_DND_25000_2.hdf5'
+            te_data_dir = '../../../data/test_SIDD.hdf5'
+            
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)
+            
         else:
             
             tr_data_dir = '../../../data/train_fivek_rawRGB_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
             te_data_dir = '../../../data/test_fivek_rawRGB_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
             
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta)
+            
         print ('tr data dir : ', tr_data_dir)
         print ('te data dir : ', te_data_dir)
     
     
-    save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta)
     
     print ('save_file_name : ', save_file_name)
     
@@ -452,6 +468,7 @@ def main(args):
     
         
         sio.savemat('../../../result_data/'+save_file_name + '_result',{'tr_loss_arr':result_tr_loss_arr, 'te_loss_arr':result_te_loss_arr,'psnr_arr':result_psnr_arr, 'ssim_arr':result_ssim_arr,'time_arr':result_time_arr, 'denoised_img':result_denoised_img_arr})
+        torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '.w')
         
         # print 
         print('Epoch [%d/%d] \t tr loss: %.4f \t val psnr_mu: %.4f \t val psnr_dbsn: %.4f \t SSIM_dbsn: %.4f \t Train_time: %f sec \t Val_time: %f sec \t' % 
@@ -475,7 +492,7 @@ def main(args):
             if val_psnr_curr >= val_psnr_pre:
                 val_psnr_pre = val_psnr_curr
                 idx_epoch = epoch
-#                 torch.save(dbsn_model.state_dict(), os.path.join(ckpt_save_path, 'dbsn_net_best_e{}.pth'.format(epoch)))
+                torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '_best.w')
 #                 torch.save(sigma_mu_model.state_dict(), os.path.join(ckpt_save_path, 'sigma_mu_net_best_e{}.pth'.format(epoch)))
 #                 torch.save(sigma_n_model.state_dict(), os.path.join(ckpt_save_path, 'sigma_n_net_best_e{}.pth'.format(epoch)))
             del save_dict
@@ -499,6 +516,7 @@ if __name__ == "__main__":
     main(opt)
 
     exit(0)
+
 
 
 

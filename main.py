@@ -27,9 +27,14 @@ if __name__ == '__main__':
             te_data_dir = './data/test_BSD68_grayscale_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
         else:
             
-            tr_data_dir = './data/train_fivek_rawRGB_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
-            te_data_dir = './data/test_fivek_rawRGB_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
-            
+            if args.alpha == 0 and args.beta == 0:
+                tr_data_dir = './data/train_fivek_rawRGB_25000x256x256_cropped_random_noise.hdf5'
+                te_data_dir = './data/test_fivek_rawRGB_random_noise.hdf5'
+            else:
+                tr_data_dir = './data/train_fivek_rawRGB_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
+                te_data_dir = './data/test_fivek_rawRGB_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
+                
+
         print ('tr data dir : ', tr_data_dir)
         print ('te data dir : ', te_data_dir)
     

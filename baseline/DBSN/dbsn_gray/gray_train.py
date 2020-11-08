@@ -45,12 +45,7 @@ def main(args):
     
     if args.noise_type == 'Poisson-Gaussian':
         
-        if args.data_type == 'Grayscale':
-
-            tr_data_dir = '../../../data/train_BSD300_grayscale_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
-            te_data_dir = '../../../data/test_BSD68_grayscale_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
-            
-        elif args.data_type == 'RawRGB' and args.data_name == 'SIDD':
+        if args.data_type == 'RawRGB' and args.data_name == 'SIDD':
 
             tr_data_dir = '../../../data/train_SIDD_25000_2.hdf5'
             te_data_dir = '../../../data/test_SIDD.hdf5'
@@ -64,6 +59,34 @@ def main(args):
             
             save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)
             
+        elif args.data_type == 'Grayscale' and args.data_name == 'CF_FISH':
+
+            tr_data_dir = '../../../data/train_CF_FISH_25000x256x256_2.hdf5'
+            te_data_dir = '../../../data/test_CF_FISH_raw.hdf5'
+            
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)
+            
+        elif args.data_type == 'Grayscale' and args.data_name == 'CF_MICE':
+
+            tr_data_dir = '../../../data/train_CF_MICE_25000x256x256_2.hdf5'
+            te_data_dir = '../../../data/test_CF_MICE_raw.hdf5'
+            
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)
+            
+        elif args.data_type == 'Grayscale' and args.data_name == 'TP_MICE':
+
+            tr_data_dir = '../../../data/train_TP_MICE_25000x256x256_2.hdf5'
+            te_data_dir = '../../../data/test_TP_MICE_raw.hdf5'
+            
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_'+ str(args.data_name)
+            
+        elif args.data_type == 'RawRGB' and args.data_name == 'fivek' and args.alpha == 0 and args.beta == 0:
+            
+            tr_data_dir = '../../../data/train_fivek_rawRGB_25000x256x256_cropped_random_noise.hdf5'
+            te_data_dir = '../../../data/test_fivek_rawRGB_random_noise.hdf5'
+            
+            save_file_name = str(args.date)+ '_DBSN_' + str(args.data_type) +'_' + 'random_noise'
+        
         else:
             
             tr_data_dir = '../../../data/train_fivek_rawRGB_25000x256x256_cropped_alpha_'+str(args.alpha)+'_beta_'+str(args.beta)+'.hdf5'
@@ -229,7 +252,7 @@ def main(args):
     dataset_num = len(dataset)
 
     te_data_loader = TedataLoader(te_data_dir, args)
-    dataset_val = DataLoader(te_data_loader, batch_size=1, shuffle=False, num_workers=0, drop_last=False)
+    dataset_val = DataLoader(te_data_loader, batch_size=4, shuffle=False, num_workers=0, drop_last=False)
     # logging
 #     with open(logger_fname, "a") as log_file:
 #         log_file.write('training/val dataset created\n')
@@ -294,6 +317,8 @@ def main(args):
 
     result_psnr_arr = []
     result_ssim_arr = []
+    result_mu_psnr_arr = []
+    result_mu_ssim_arr = []
     result_time_arr = []
     result_denoised_img_arr = []
     result_te_loss_arr = []
@@ -325,6 +350,7 @@ def main(args):
         tr_loss = []
 
         for batch_idx, (source, target) in enumerate(dataset):
+            
             img_train = target.cuda()
             img_noise = source.cuda()
             _,C,H,W = img_noise.shape
@@ -401,8 +427,10 @@ def main(args):
         dbsn_model.eval()
         sigma_mu_model.eval()
         sigma_n_model.eval()
-        val_start_time = time.time()
+        
         ssim_arr = []
+        mu_ssim_arr = []
+        time_arr = []
         with torch.no_grad():
             psnr_val = 0
             psnr_val_dbsn = 0
@@ -412,6 +440,9 @@ def main(args):
 #                 img_noise_val = data['noisy'].cuda()
 
             for batch_idx, (source, target) in enumerate(dataset_val):
+        
+                val_start_time = time.time()
+            
                 img_noise_val = source.cuda()
                 img_val = target.cuda()
                 _,C,H,W = img_noise_val.shape
@@ -428,6 +459,10 @@ def main(args):
                 noise_est_val = F.softplus(sigma_n_out_val - 4) + (1e-3)
                 sigma_n_val = noise_est_val ** 2
                 map_out_val = (img_noise_val * sigma_mu_val + mu_out_val * sigma_n_val) / (sigma_mu_val + sigma_n_val)
+                
+                inference_time = (time.time() - val_start_time)
+                time_arr.append(inference_time)
+                
                 # compute PSNR
                 psnr = batch_psnr(mu_out_val.clamp(0., 1.), img_val.clamp(0., 1.), 1.)
                 psnr_val+=psnr
@@ -440,6 +475,13 @@ def main(args):
                 X = target.cpu().numpy()
                 ssim_arr.append(get_SSIM(X[0], X_hat[0]))
                 
+                
+                mu_out_val = mu_out_val.cpu().numpy()
+                X_hat = np.clip(mu_out_val, 0, 1)
+                X = target.cpu().numpy()
+                mu_ssim_arr.append(get_SSIM(X[0], X_hat[0]))
+                
+                
                 # # print
                 # print("Image: %d, psnr_mu: %.4f, psnr_dbsn: %.4f " % (count, psnr, psnr_update))
                 # logging
@@ -448,7 +490,7 @@ def main(args):
 #                         'psnr_mu:{psnr:.4f} \t'
 #                         'psnr_dbsn:{psnr_dbsn:.4f} \n'.format(count, psnr=psnr,psnr_dbsn=psnr_dbsn))
             torch.cuda.synchronize()
-            val_take_time = (time.time() - val_start_time) / len(dataset_val)
+            
             psnr_val /= len(dataset_val)
             psnr_val_dbsn /= len(dataset_val)
             # Record the best PSNR
@@ -458,21 +500,25 @@ def main(args):
                 
             
             mean_ssim = np.mean(ssim_arr)
+            mean_mu_ssim = np.mean(mu_ssim_arr)
+            mean_time = np.mean(time_arr)
                 
             result_psnr_arr.append(psnr_val_dbsn)
             result_ssim_arr.append(mean_ssim)
-            result_time_arr.append(val_take_time)
+            result_mu_psnr_arr.append(psnr_val)
+            result_mu_ssim_arr.append(mean_mu_ssim)
+            result_time_arr.append(mean_time)
             result_te_loss_arr.append(0)
             result_tr_loss_arr.append(mean_tr_loss)
             result_denoised_img_arr.append(0)
     
         
-        sio.savemat('../../../result_data/'+save_file_name + '_result',{'tr_loss_arr':result_tr_loss_arr, 'te_loss_arr':result_te_loss_arr,'psnr_arr':result_psnr_arr, 'ssim_arr':result_ssim_arr,'time_arr':result_time_arr, 'denoised_img':result_denoised_img_arr})
+        sio.savemat('../../../result_data/'+save_file_name + '_result',{'tr_loss_arr':result_tr_loss_arr, 'te_loss_arr':result_te_loss_arr,'psnr_arr':result_psnr_arr, 'ssim_arr':result_ssim_arr,'mu_psnr_arr':result_mu_psnr_arr, 'mu_ssim_arr':result_mu_ssim_arr,'time_arr':result_time_arr, 'denoised_img':result_denoised_img_arr})
         torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '.w')
         
         # print 
-        print('Epoch [%d/%d] \t tr loss: %.4f \t val psnr_mu: %.4f \t val psnr_dbsn: %.4f \t SSIM_dbsn: %.4f \t Train_time: %f sec \t Val_time: %f sec \t' % 
-            (epoch, args.epoch, mean_tr_loss, psnr_val, psnr_val_dbsn, mean_ssim, tr_take_time, val_take_time))
+        print('Epoch [%d/%d] \t tr loss: %.4f \t val psnr_mu: %.4f \t val SSIM_mu: %.4f \t val psnr_dbsn: %.4f \t SSIM_dbsn: %.4f \t Train_time: %f sec \t Val_time: %f sec \t' % 
+            (epoch, args.epoch, mean_tr_loss, psnr_val, mean_mu_ssim, psnr_val_dbsn, mean_ssim, tr_take_time, mean_time))
 
         # save model and checkpoint
         if val_psnr_curr >= val_psnr_pre or (epoch+1) % args.save_model_freq == 0:
@@ -516,6 +562,10 @@ if __name__ == "__main__":
     main(opt)
 
     exit(0)
+
+
+
+
 
 
 

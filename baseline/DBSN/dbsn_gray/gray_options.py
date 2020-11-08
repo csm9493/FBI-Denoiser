@@ -94,7 +94,12 @@ parser.add_argument('--data-type', default='RawRGB', type=str, required=False,
                     help='(default=%(default)s)')
 parser.add_argument('--data-name', default='BSD', type=str, required=False,
                     choices=['BSD',
-                             'fivek'],
+                             'fivek',
+                             'SIDD',
+                             'DND',
+                             'CF_FISH',
+                             'CF_MICE',
+                             'TP_MICE'],
                     help='(default=%(default)s)')
 parser.add_argument('--alpha', default=0.01, type=float, help='(default=%(default)f)')
 parser.add_argument('--beta', default=0.02, type=float, help='(default=%(default)f)')
@@ -154,3 +159,4 @@ else:
 # print('\tParameteres list:')
 # for key in opt.__dict__:
 #     print('\t'+key+': '+str(opt.__dict__[key]))
+

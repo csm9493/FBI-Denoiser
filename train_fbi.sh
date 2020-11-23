@@ -1,0 +1,2 @@
+#! /bin/bash
+CUDA_VISIBLE_DEVICES=3 python main.py --date 201104 --seed 0 --noise-type 'Poisson-Gaussian' --loss-function 'EMSE_Affine' --model-type 'FBI_Net' --data-type 'RawRGB' --data-name 'fivek' --pge-weight-dir '201104_Noise_est_RawRGB_fivek_alpha_0.01_beta_0.02_PGE_Net_cropsize_200.w'  --num-layers 17 --num-filters 64 --crop-size 220

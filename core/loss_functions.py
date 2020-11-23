@@ -34,7 +34,7 @@ def mse_affine(output, target):
     
     return loss
 
-def estimated_affine(output, target):
+def emse_affine(output, target):
     
     a = output[:,0]
     b = output[:,1]
@@ -45,3 +45,4 @@ def estimated_affine(output, target):
     loss = torch.mean((Z - (a*Z+b))**2 + 2*a*(sigma**2) - sigma**2)
     
     return loss
+

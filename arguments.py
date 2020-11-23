@@ -10,7 +10,7 @@ def get_args():
                         choices=['Poisson-Gaussian'],
                         help='(default=%(default)s)')
     parser.add_argument('--loss-function', default='Estimated_Affine', type=str, required=False,
-                        choices=['MSE', 'N2V', 'MSE_Affine', 'Noise_est'],
+                        choices=['MSE', 'N2V', 'MSE_Affine', 'Noise_est', 'EMSE_Affine'],
                         help='(default=%(default)s)')
     parser.add_argument('--model-type', default='final', type=str, required=False,
                         choices=['case1',
@@ -50,6 +50,7 @@ def get_args():
     
     
     parser.add_argument('--unet-layer', default=3, type=int, help='(default=%(default)f)')
+    parser.add_argument('--pge-weight-dir', default=None, type=str, help='(default=%(default)f)')
     
     args=parser.parse_args()
     return args

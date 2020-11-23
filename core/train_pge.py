@@ -13,7 +13,7 @@ import sys
 from .unet import est_UNet  
 import time
 
-class Train_Est(object):
+class Train_PGE(object):
     def __init__(self,_tr_data_dir=None, _te_data_dir=None, _save_file_name = None, _args = None):
         
         self.tr_data_dir = _tr_data_dir
@@ -46,7 +46,7 @@ class Train_Est(object):
  
        
     def save_model(self, epoch):
-        torch.save(self.model.state_dict(), './weights/'+self.save_file_name  +'_ep'+ str(epoch) + '.w')
+        torch.save(self.model.state_dict(), './weights/'+self.save_file_name  + '.w')
         return
     
         
@@ -83,8 +83,6 @@ class Train_Est(object):
     def _vst(self,transformed):    
         
         est=chen_estimate(transformed)
-        print (est)
-#         print('chen est: ' ,est)
         return ((est-1)**2)
      
     def train(self):
@@ -109,6 +107,8 @@ class Train_Est(object):
 #                 predict_gat=gat(source,torch.tensor(0.02).to(torch.float32),torch.tensor(0.01).to(torch.float32),0)     
                 
                 loss=self._vst(predict_gat)
+                loss.backward()
+                self.optim.step()  
 
                 self.logger.log(losses = {'loss': loss, 'pred_alpha': predict_alpha, 'pred_sigma': predict_sigma}, lr = self.optim.param_groups[0]['lr'])
                 tr_loss.append(loss.detach().cpu().numpy())

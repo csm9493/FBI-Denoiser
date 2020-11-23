@@ -83,7 +83,7 @@ class TrdataLoader():
                 
                 return source, target
             
-            elif self.args.loss_function == 'MSE_Affine' or self.args.loss_function == 'N2V' or self.args.loss_function == 'Noise_est':
+            elif self.args.loss_function == 'MSE_Affine' or self.args.loss_function == 'N2V' or self.args.loss_function == 'Noise_est' or self.args.loss_function == 'EMSE_Affine':
                 
                 source = torch.from_numpy(noisy_patch.copy())
                 target = torch.from_numpy(clean_patch.copy())
@@ -238,12 +238,52 @@ def chen_estimate(im,pch_size=8):
 def gat(z,sigma,alpha,g):
     _alpha=torch.ones_like(z)*alpha
     _sigma=torch.ones_like(z)*sigma
-
     z=z/_alpha
     _sigma=_sigma/_alpha
     f=(2.0)*torch.sqrt(torch.max(z+(3.0/8.0)+_sigma**2,torch.zeros_like(z)))
     return f
 
+def inverse_gat(z,sigma1,alpha,g,method='asym'):
+   # with torch.no_grad():
+    sigma=sigma1/alpha
+    if method=='closed_form':
+        exact_inverse = ( np.power(z/2.0, 2.0) +
+              0.25* np.sqrt(1.5)*np.power(z, -1.0) -
+              11.0/8.0 * np.power(z, -2.0) +
+              5.0/8.0 * np.sqrt(1.5) * np.power(z, -3.0) -
+              1.0/8.0 - sigma**2 )
+        exact_inverse=np.maximum(0.0,exact_inverse)
+    elif method=='asym':
+        exact_inverse=(z/2.0)**2-1.0/8.0-sigma
+    else:
+        raise NotImplementedError('Only supports the closed-form')
+    if alpha !=1:
+        exact_inverse*=alpha
+    if g!=0:
+        exact_inverse+=g
+    return exact_inverse
+# def inverse_gat_torch(z,sigma1,alpha,g,method='asym'):
+#  #   with torch.no_grad():
+#     sigma=sigma1/alpha
+#     if method == 'closed_form':
+#         exact_inverse = (torch.pow(z/2.0, 2.0) + 0.25* torch.rsqrt(torch.tensor(1.5))*torch.pow(z, -1.0) - 11.0/8.0 * torch.pow(z, -2.0) + 5.0/8.0 * torch.rsqrt(torch.tensor(1.5)) * torch.pow(z, -3.0) -  1.0/8.0 - sigma**2 ).cuda()
+#         exact_inverse=torch.max(torch.tensor(0.0).cuda(),exact_inverse)
+#     elif method == 'asym':
+#         exact_inverse=(z/2.0)**2-1.0/8.0-sigma
+#     else:
+#         raise NotImplementedError('Only supports the closed-form')
+#     if alpha !=1:
+#         exact_inverse*=alpha
+#     if g!=0:
+#         exact_inverse+=g
+#     return exact_inverse
 
+def normalize_after_gat_torch(transformed):
+    min_transform=torch.min(transformed)
+    max_transform=torch.max(transformed)
 
+    transformed=(transformed-min_transform)/(max_transform-min_transform)
+    transformed_sigma= 1/(max_transform-min_transform)
+    transformed_sigma=torch.ones_like(transformed)*(transformed_sigma)
+    return transformed, transformed_sigma, min_transform, max_transform
 

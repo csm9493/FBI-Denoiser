@@ -1,5 +1,5 @@
-from core.train import Train
-from core.train_est import Train_Est
+from core.train_fbi import Train_FBI
+from core.train_pge import Train_PGE
 from arguments import get_args
 import torch
 import numpy as np
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     
     # Initialize model and train
     if args.model_type != 'PGE_Net':
-        train = Train(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
+        train = Train_FBI(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
     else:
-        train = Train_Est(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
+        train = Train_PGE(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
     train.train()

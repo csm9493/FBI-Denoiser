@@ -4,21 +4,23 @@ from torch.utils.data import DataLoader
 import numpy as np
 import scipy.io as sio
 
-from .utils import TedataLoader, TrdataLoader, get_PSNR, get_SSIM
-from .loss_functions import mse_bias, mse_affine, estimated_bias, estimated_affine
+from .utils import TedataLoader, TrdataLoader, get_PSNR, get_SSIM, inverse_gat, gat, normalize_after_gat_torch
+from .loss_functions import mse_bias, mse_affine, emse_affine
 from .logger import Logger
 from .models import New_model
 from .fcaide import FC_AIDE
 from .dbsn import DBSN_Model
+from .unet import est_UNet
 
 import time
 
 torch.backends.cudnn.benchmark=True
 
-class Train(object):
+class Train_FBI(object):
     def __init__(self,_tr_data_dir=None, _te_data_dir=None, _save_file_name = None, _args = None):
         
         self.args = _args
+        self.pge_weight_dir = './weights/' + self.args.pge_weight_dir
         
         self.tr_data_loader = TrdataLoader(_tr_data_dir, self.args)
         self.tr_data_loader = DataLoader(self.tr_data_loader, batch_size=self.args.batch_size, shuffle=True, num_workers=0, drop_last=True)
@@ -46,12 +48,22 @@ class Train(object):
         elif self.args.loss_function == 'MSE_Affine':
             self.loss = mse_affine
             num_output_channel = 2
-        
+        elif self.args.loss_function == 'EMSE_Affine':
+            
+            self.loss = emse_affine
+            num_output_channel = 2
+            
+            ## load PGE model
+            self.pge_model=est_UNet(num_output_channel,depth=3)
+            self.pge_model.load_state_dict(torch.load(self.pge_weight_dir))
+            self.pge_model=self.pge_model.cuda()
+            
+            for param in self.pge_model.parameters():
+                param.requires_grad = False
+            
         
         if self.args.model_type == 'FC-AIDE':
             self.model = FC_AIDE(channel = 1, output_channel = num_output_channel, filters = 64, num_of_layers=10)
-        elif self.args.model_type == 'final_mul':
-            self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, mul = self.args.mul)
         elif self.args.model_type == 'DBSN':
             self.model = DBSN_Model(in_ch = 1,
                             out_ch = num_output_channel,
@@ -105,12 +117,25 @@ class Train(object):
                 target = target.cuda()
 
                 # Denoise
+                if self.args.loss_function =='EMSE_Affine':
+                                        
+                    est_param=self.pge_model(source)
+                    original_alpha=torch.mean(est_param[:,0])
+                    original_sigma=torch.mean(est_param[:,1])
+                    
+                    transformed=gat(source,original_sigma,original_alpha,0)
+                    transformed, transformed_sigma, min_t, max_t= normalize_after_gat_torch(transformed)
+                    
+                    target = torch.cat([transformed, transformed_sigma], dim = 1)
+#                     target = torch.cat([target,transformed_sigma], dim = 1)
 
-                # Denoise image
-                if self.args.model_type == 'DBSN':
-                    output, _ = self.model(source)
+                    output = self.model(transformed)
                 else:
-                    output = self.model(source)
+                    # Denoise image
+                    if self.args.model_type == 'DBSN':
+                        output, _ = self.model(source)
+                    else:
+                        output = self.model(source)
                 
                 loss = self.loss(output, target)
 
@@ -131,6 +156,23 @@ class Train(object):
                 elif  self.args.loss_function == 'N2V':
                     X = target[:,1:].cpu().numpy()
                     X_hat = np.clip(output.cpu().numpy(), 0, 1)
+                    
+                
+                elif self.args.loss_function == 'EMSE_Affine':
+                    
+                    Z = target[:,:1]
+                    X = target[:,1:].cpu().numpy()
+                    X_hat = self.get_X_hat(Z,output).cpu().numpy()
+                    
+                    transformed=transformed.cpu().numpy()
+                    original_sigma=original_sigma.cpu().numpy()
+                    original_alpha=original_alpha.cpu().numpy()
+                    min_t=min_t.cpu().numpy()
+                    max_t=max_t.cpu().numpy()
+                    X_hat =X_hat*(max_t-min_t)+min_t
+                    X_hat=np.clip(inverse_gat(X_hat,original_sigma,original_alpha,0,method='closed_form'), 0, 1)
+#                     print (X_hat.shape)
+#                     print (X.shape)
 
                 inference_time = time.time()-start
                 
@@ -185,13 +227,29 @@ class Train(object):
                 source = source.cuda()
                 target = target.cuda()
                 
-                # Denoise image
-                if self.args.model_type == 'DBSN':
-                    source_denoised, _ = self.model(source)
+
+                # Denoise
+                if self.args.loss_function =='EMSE_Affine':
+                                        
+                    est_param=self.pge_model(source)
+                    original_alpha=torch.mean(est_param[:,0])
+                    original_sigma=torch.mean(est_param[:,1])
+                    
+                    transformed=gat(source,original_sigma,original_alpha,0)
+                    transformed, transformed_sigma, min_t, max_t= normalize_after_gat_torch(transformed)
+                    
+                    target = torch.cat([transformed, transformed_sigma], dim = 1)
+#                     target = torch.cat([target,transformed_sigma], dim = 1)
+
+                    output = self.model(transformed)
                 else:
-                    source_denoised = self.model(source)
+                    # Denoise image
+                    if self.args.model_type == 'DBSN':
+                        output, _ = self.model(source)
+                    else:
+                        output = self.model(source)
                 
-                loss = self.loss(source_denoised, target)
+                loss = self.loss(output, target)
                     
                 loss.backward()
                 self.optim.step()
@@ -206,5 +264,6 @@ class Train(object):
                 self.save_model()
                 
             self.scheduler.step()
+
 
 

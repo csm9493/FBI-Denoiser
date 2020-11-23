@@ -1,4 +1,5 @@
 from core.train import Train
+from core.train_est import Train_Est
 from arguments import get_args
 import torch
 import numpy as np
@@ -42,11 +43,16 @@ if __name__ == '__main__':
         save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(10) + '_filters_x' + str(64)
     elif args.model_type == 'DBSN':
         save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type)
-    else:
+    elif args.model_type == 'PGE_Net':
+        save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_cropsize_' + str(args.crop_size)
+    elif args.model_type == 'FBI_Net':
         save_file_name = str(args.date)+ '_' + str(args.loss_function) + '_' + str(args.data_type) +'_'+ str(args.data_name)+ '_alpha_' + str(args.alpha) + '_beta_' + str(args.beta) + '_' + str(args.model_type) + '_layers_x' + str(args.num_layers) + '_filters_x' + str(args.num_filters)+ '_cropsize_' + str(args.crop_size)
     
     print ('save_file_name : ', save_file_name)
     
     # Initialize model and train
-    train = Train(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
+    if args.model_type != 'PGE_Net':
+        train = Train(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
+    else:
+        train = Train_Est(_tr_data_dir=tr_data_dir, _te_data_dir=te_data_dir, _save_file_name = save_file_name,  _args = args)
     train.train()

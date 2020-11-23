@@ -10,7 +10,7 @@ def get_args():
                         choices=['Poisson-Gaussian'],
                         help='(default=%(default)s)')
     parser.add_argument('--loss-function', default='Estimated_Affine', type=str, required=False,
-                        choices=['MSE', 'N2V', 'MSE_Affine'],
+                        choices=['MSE', 'N2V', 'MSE_Affine', 'Noise_est'],
                         help='(default=%(default)s)')
     parser.add_argument('--model-type', default='final', type=str, required=False,
                         choices=['case1',
@@ -18,10 +18,12 @@ def get_args():
                                  'case3',
                                  'case4',
                                  'case5',
-                                 'final',
-                                 'final_mul',
-                                 'attention',
-                                'FC-AIDE'],
+                                 'case6',
+                                 'case7',
+                                 'FBI_Net',
+                                 'PGE_Net',
+                                 'DBSN',
+                                 'FC-AIDE'],
                         help='(default=%(default)s)')
     parser.add_argument('--data-type', default='RawRGB', type=str, required=False,
                         choices=['Grayscale',
@@ -45,6 +47,9 @@ def get_args():
     parser.add_argument('--num-layers', default=8, type=int, help='(default=%(default)f)')
     parser.add_argument('--num-filters', default=64, type=int, help='(default=%(default)f)')
     parser.add_argument('--mul', default=1, type=int, help='(default=%(default)f)')
+    
+    
+    parser.add_argument('--unet-layer', default=3, type=int, help='(default=%(default)f)')
     
     args=parser.parse_args()
     return args

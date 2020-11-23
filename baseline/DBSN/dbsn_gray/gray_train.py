@@ -514,7 +514,9 @@ def main(args):
     
         
         sio.savemat('../../../result_data/'+save_file_name + '_result',{'tr_loss_arr':result_tr_loss_arr, 'te_loss_arr':result_te_loss_arr,'psnr_arr':result_psnr_arr, 'ssim_arr':result_ssim_arr,'mu_psnr_arr':result_mu_psnr_arr, 'mu_ssim_arr':result_mu_ssim_arr,'time_arr':result_time_arr, 'denoised_img':result_denoised_img_arr})
-        torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '.w')
+        torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '_dbsn_model.w')
+        orch.save(sigma_mu_model.state_dict(),  '../../../weights/'+save_file_name + '_sigma_mu_model.w')
+        orch.save(sigma_n_model.state_dict(),  '../../../weights/'+save_file_name + '_sigma_n_model.w')
         
         # print 
         print('Epoch [%d/%d] \t tr loss: %.4f \t val psnr_mu: %.4f \t val SSIM_mu: %.4f \t val psnr_dbsn: %.4f \t SSIM_dbsn: %.4f \t Train_time: %f sec \t Val_time: %f sec \t' % 
@@ -538,9 +540,9 @@ def main(args):
             if val_psnr_curr >= val_psnr_pre:
                 val_psnr_pre = val_psnr_curr
                 idx_epoch = epoch
-                torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '_best.w')
-#                 torch.save(sigma_mu_model.state_dict(), os.path.join(ckpt_save_path, 'sigma_mu_net_best_e{}.pth'.format(epoch)))
-#                 torch.save(sigma_n_model.state_dict(), os.path.join(ckpt_save_path, 'sigma_n_net_best_e{}.pth'.format(epoch)))
+                torch.save(dbsn_model.state_dict(),  '../../../weights/'+save_file_name + '_dbsn_model_best.w')
+                torch.save(sigma_mu_model.state_dict(),  '../../../weights/'+save_file_name + '_sigma_mu_model_best.w')
+                torch.save(sigma_n_model.state_dict(),  '../../../weights/'+save_file_name + '_sigma_n_model_best.w')
             del save_dict
         # # print
         # print('Best Val psnr_dbsn=%.4f with Epoch %d' % (val_psnr_pre, idx_epoch))

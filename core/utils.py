@@ -262,21 +262,6 @@ def inverse_gat(z,sigma1,alpha,g,method='asym'):
     if g!=0:
         exact_inverse+=g
     return exact_inverse
-# def inverse_gat_torch(z,sigma1,alpha,g,method='asym'):
-#  #   with torch.no_grad():
-#     sigma=sigma1/alpha
-#     if method == 'closed_form':
-#         exact_inverse = (torch.pow(z/2.0, 2.0) + 0.25* torch.rsqrt(torch.tensor(1.5))*torch.pow(z, -1.0) - 11.0/8.0 * torch.pow(z, -2.0) + 5.0/8.0 * torch.rsqrt(torch.tensor(1.5)) * torch.pow(z, -3.0) -  1.0/8.0 - sigma**2 ).cuda()
-#         exact_inverse=torch.max(torch.tensor(0.0).cuda(),exact_inverse)
-#     elif method == 'asym':
-#         exact_inverse=(z/2.0)**2-1.0/8.0-sigma
-#     else:
-#         raise NotImplementedError('Only supports the closed-form')
-#     if alpha !=1:
-#         exact_inverse*=alpha
-#     if g!=0:
-#         exact_inverse+=g
-#     return exact_inverse
 
 def normalize_after_gat_torch(transformed):
     min_transform=torch.min(transformed)

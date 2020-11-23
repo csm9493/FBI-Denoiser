@@ -31,7 +31,12 @@ def get_args():
                         help='(default=%(default)s)')
     parser.add_argument('--data-name', default='BSD', type=str, required=False,
                         choices=['BSD',
-                                 'fivek'],
+                                 'fivek',
+                                 'SIDD',
+                                 'DND',
+                                 'CF_FISH',
+                                 'CF_MICE',
+                                 'TP_MICE'],
                         help='(default=%(default)s)')
     
     parser.add_argument('--nepochs', default=50, type=int, required=False, help='(default=%(default)d)')
@@ -52,7 +57,13 @@ def get_args():
     parser.add_argument('--unet-layer', default=3, type=int, help='(default=%(default)f)')
     parser.add_argument('--pge-weight-dir', default=None, type=str, help='(default=%(default)f)')
     
+    parser.add_argument('--output-type', default='sigmoid', type=str, help='(default=%(default)f)')
+    parser.add_argument('--sigmoid-value', default=0.1, type=float, help='(default=%(default)f)')
+    
+    
     args=parser.parse_args()
     return args
+
+
 
 

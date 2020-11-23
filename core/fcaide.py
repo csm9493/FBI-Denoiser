@@ -47,7 +47,7 @@ class AttrProxy(object):
         return getattr(self.module, self.prefix + str(i))
 
 class FC_AIDE(nn.Module):
-    def __init__(self, channel = 1, output_channel = 2, filters = 64, num_of_layers=10, output_type='linear'):
+    def __init__(self, channel = 1, output_channel = 2, filters = 64, num_of_layers=10, output_type='linear', sigmoid_value = 0.1):
         super(FC_AIDE, self).__init__()
         
         self.qed_first_layer = QED_first_layer(channel, filters).cuda()
@@ -55,6 +55,8 @@ class FC_AIDE(nn.Module):
         self.residual_module_first_layer = Residual_module(filters)
         
         self.num_layers = num_of_layers
+        self.output_type = output_type
+        self.sigmoid_value = sigmoid_value
 
         dilated_value = 1
         
@@ -70,6 +72,9 @@ class FC_AIDE(nn.Module):
         self.output_residual_module = Residual_module(filters).cuda()
         
         self.output_layer = nn.Conv2d(in_channels=filters, out_channels=output_channel, kernel_size = 1).cuda()
+        
+        if self.output_type == 'sigmoid':
+            self.sigmoid=nn.Sigmoid().cuda()
         
         self.qed = AttrProxy(self, 'qed_')
         self.avg = AttrProxy(self, 'avg_')
@@ -100,5 +105,8 @@ class FC_AIDE(nn.Module):
         output = self.output_prelu1(output)
         output = self.output_residual_module(output)
         output = self.output_layer(output)
+        
+        if self.output_type=='sigmoid':
+               output[:,0]=(torch.ones_like(output[:,0])*self.sigmoid_value)*self.sigmoid(output[:,0])
         
         return output

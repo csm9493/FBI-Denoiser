@@ -63,7 +63,7 @@ class Train_FBI(object):
             
         
         if self.args.model_type == 'FC-AIDE':
-            self.model = FC_AIDE(channel = 1, output_channel = num_output_channel, filters = 64, num_of_layers=10)
+            self.model = FC_AIDE(channel = 1, output_channel = num_output_channel, filters = 64, num_of_layers=10, output_type = self.args.output_type, sigmoid_value = self.args.sigmoid_value)
         elif self.args.model_type == 'DBSN':
             self.model = DBSN_Model(in_ch = 1,
                             out_ch = num_output_channel,
@@ -76,7 +76,7 @@ class Train_FBI(object):
                             br2_blindspot_conv_ks = 5,
                             activate_fun = 'Relu')
         else:
-            self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = self.args.model_type)
+            self.model = New_model(channel = 1, output_channel =  num_output_channel, filters = self.args.num_filters, num_of_layers=self.args.num_layers, case = self.args.model_type, output_type = self.args.output_type, sigmoid_value = self.args.sigmoid_value)
             
         self.model = self.model.cuda()
             
@@ -264,6 +264,8 @@ class Train_FBI(object):
                 self.save_model()
                 
             self.scheduler.step()
+
+
 
 
 

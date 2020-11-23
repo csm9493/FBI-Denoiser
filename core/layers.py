@@ -115,11 +115,11 @@ class Receptive_attention(nn.Module):
         return output
     
 class New1_layer(nn.Module):
-    def __init__(self, in_ch, out_ch, case = 'final', mul = 1):
+    def __init__(self, in_ch, out_ch, case = 'FBI_Net', mul = 1):
         super(New1_layer, self).__init__()
         self.case = case
         self.new1 = New1(in_ch,out_ch).cuda()
-        if case == 'case1' or case == 'case2' or case == 'case7' or case == 'final':
+        if case == 'case1' or case == 'case2' or case == 'case7' or case == 'FBI_Net':
             self.residual_module = Residual_module(out_ch, mul)
             
         self.activation_new1 = nn.PReLU(in_ch,0).cuda()
@@ -128,7 +128,7 @@ class New1_layer(nn.Module):
     def forward(self, x):
         
         
-        if self.case == 'case1' or self.case =='case2'  or self.case =='case7' or self.case == 'final': # plain NN architecture wo residual module and residual connection
+        if self.case == 'case1' or self.case =='case2'  or self.case =='case7' or self.case == 'FBI_Net': # plain NN architecture wo residual module and residual connection
             
             output_new1 = self.new1(x)
             output_new1 = self.activation_new1(output_new1)
@@ -144,16 +144,16 @@ class New1_layer(nn.Module):
             return output, output_new1
    
 class New2_layer(nn.Module):
-    def __init__(self, in_ch, out_ch, case = 'final', mul = 1):
+    def __init__(self, in_ch, out_ch, case = 'FBI_Net', mul = 1):
         super(New2_layer, self).__init__()
         
         self.case = case
         
         self.new2 = New2(in_ch,out_ch).cuda()
         self.activation_new1 = nn.PReLU(in_ch,0).cuda()
-        if case == 'case1' or case == 'case2' or case == 'case7' or case == 'final':
+        if case == 'case1' or case == 'case2' or case == 'case7' or case == 'FBI_Net':
             self.residual_module = Residual_module(out_ch, mul)
-        if case == 'case1' or case == 'case3' or case == 'case6' or case == 'final':
+        if case == 'case1' or case == 'case3' or case == 'case6' or case == 'FBI_Net':
             self.activation_new2 = nn.PReLU(in_ch,0).cuda()
         
 
@@ -222,16 +222,16 @@ class New2_layer(nn.Module):
             
     
 class New3_layer(nn.Module):
-    def __init__(self, in_ch, out_ch, dilated_value=3, case = 'final', mul = 1):
+    def __init__(self, in_ch, out_ch, dilated_value=3, case = 'FBI_Net', mul = 1):
         super(New3_layer, self).__init__()
         
         self.case = case
         
         self.new3 = New3(in_ch,out_ch,dilated_value).cuda()
         self.activation_new1 = nn.PReLU(in_ch,0).cuda()
-        if case == 'case1' or case == 'case2'  or case == 'case7' or case == 'final':
+        if case == 'case1' or case == 'case2'  or case == 'case7' or case == 'FBI_Net':
             self.residual_module = Residual_module(out_ch, mul)
-        if case == 'case1' or case == 'case3' or case == 'case6'or case == 'final':
+        if case == 'case1' or case == 'case3' or case == 'case6'or case == 'FBI_Net':
             self.activation_new2 = nn.PReLU(in_ch,0).cuda()
         
 
@@ -420,3 +420,4 @@ class QED_layer(nn.Module):
         outputs.append(self.d2(out_d2))
         
         return outputs
+

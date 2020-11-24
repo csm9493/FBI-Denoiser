@@ -22,5 +22,5 @@ Check 'train_fbi_emse.sh'. It contains five shall scripts to train PGE-Net on ea
 
 ## 3. Train PGE-Net (Supervised)
 
-Check 'train_est_mse.sh'. It contains five shall scripts to train PGE-Net on each dataset and seven types for ablation study.
+Check 'train_est_mse.sh'. It contains five shall scripts to train PGE-Net on each dataset and seven shall scripts for ablation study.
 

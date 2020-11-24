@@ -115,7 +115,7 @@ class Train_FBI(object):
 
                 source = source.cuda()
                 target = target.cuda()
-
+                
                 # Denoise
                 if self.args.loss_function =='EMSE_Affine':
                                         
@@ -126,19 +126,22 @@ class Train_FBI(object):
                     transformed=gat(source,original_sigma,original_alpha,0)
                     transformed, transformed_sigma, min_t, max_t= normalize_after_gat_torch(transformed)
                     
-                    target = torch.cat([transformed, transformed_sigma], dim = 1)
+                    transformed_target = torch.cat([transformed, transformed_sigma], dim = 1)
 #                     target = torch.cat([target,transformed_sigma], dim = 1)
 
                     output = self.model(transformed)
+    
+                    loss = self.loss(output, transformed_target)
+        
                 else:
                     # Denoise image
                     if self.args.model_type == 'DBSN':
                         output, _ = self.model(source)
+                        loss = self.loss(output, target)
                     else:
                         output = self.model(source)
+                        loss = self.loss(output, target)
                 
-                loss = self.loss(output, target)
-
                 loss = loss.cpu().numpy()
 
                 # Update loss
@@ -160,9 +163,9 @@ class Train_FBI(object):
                 
                 elif self.args.loss_function == 'EMSE_Affine':
                     
-                    Z = target[:,:1]
-                    X = target[:,1:].cpu().numpy()
-                    X_hat = self.get_X_hat(Z,output).cpu().numpy()
+                    transformed_Z = transformed_target[:,:1]
+                    X = target.cpu().numpy()
+                    X_hat = self.get_X_hat(transformed_Z,output).cpu().numpy()
                     
                     transformed=transformed.cpu().numpy()
                     original_sigma=original_sigma.cpu().numpy()

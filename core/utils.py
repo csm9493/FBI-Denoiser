@@ -36,7 +36,7 @@ class TrdataLoader():
         print ('num of training patches : ', self.num_data)
 
     def __len__(self):
-        return self.num_data
+        return 1000
     
     def __getitem__(self, index):
         
@@ -170,7 +170,6 @@ def im2patch(im,pch_size,stride=1):
 
     return pch.view((C, pch_H, pch_W, num_pch))
 
-
 def chen_estimate(im,pch_size=8):
     im=torch.squeeze(im)
     #grayscale
@@ -180,36 +179,61 @@ def chen_estimate(im,pch_size=8):
     pch=pch.view((-1,num_pch))
     d=pch.size()[0]
     mu=torch.mean(pch,dim=1,keepdim=True)
-        
+    
     X=pch-mu
     sigma_X=torch.matmul(X,torch.t(X))/num_pch
     sig_value,_=torch.symeig(sigma_X,eigenvectors=True)
-    sig_value=sig_value.sort().values  #ascending order
-         
+    sig_value=sig_value.sort().values
+    
+    
     start=time.time()
 
-    # tensor operation for substituting iterative step.
-    triangle=torch.ones((d,d))
-    triangle= torch.tril(triangle).cuda()
-    sig_matrix= torch.matmul( triangle, torch.diag(sig_value)) 
-         
+# tensor operation for substituting iterative step.
+# These operation make  parallel computing possiblie which is more efficient
+
+    # eigenvalue: vector to matrix (make a lower triangle for efficient computing )
+    # For example, 
+    # sig_val:  [1 2 3]
+    # sig_matrix: 1 0 0
+#                 1 2 0
+#                 1 2 3
+
+    sig_tri= torch.ones((d,d))
+    sig_tri = torch.tril(sig_tri).cuda()
+    sig_matrix= sig_tri * sig_value
+    
     # calculate whole threshold value at a single time
+
+    # tau_arr:[ 1 1.5 2 ] row wise mean (without zero elements)
     num_vec= torch.arange(d)+1
-    num_vec=num_vec.cuda() 
+    num_vec=num_vec.to(dtype=torch.float32).cuda()
     sum_arr= torch.sum(sig_matrix,dim=1)
     tau_arr=sum_arr/num_vec
-        
-    # make mean vector to matrix for directly calculate the booleans 
-    tau_mat= torch.matmul(torch.diag(tau_arr),triangle)
+    
+    # make threshold vector to matrix for directly calculate the booleans 
+    # Threshold vector also convert to lower triangle matrix  for directly comparing sig_matrix and tau_mat
+    # tau_mat:  1   0   0
+    #           1.5 1.5 0
+#               2   2   2 
+    tau_mat=torch.ones((d,d)).cuda()
+    tau_mat=tau_arr*tau_mat
+    tau_mat=tau_mat.T
+    tau_mat=torch.tril(tau_mat).cuda()
 
     # find median value with masking scheme: 
     big_bool= torch.sum(sig_matrix>tau_mat,axis=1)
     small_bool= torch.sum(sig_matrix<tau_mat,axis=1)
-    mask=(big_bool==small_bool)
+    mask=(big_bool==small_bool).to(dtype=torch.float32).cuda()
     tau_chen=torch.max(mask*tau_arr)
+      
+# Previous implementation       
+#    for ii in range(-1, -d-1, -1):
+#        tau = torch.mean(sig_value[:ii])
+#        if torch.sum(sig_value[:ii]>tau) == torch.sum(sig_value[:ii] < tau):
+             #  return torch.sqrt(tau)
+#    print('old: ', torch.sqrt(tau))
 
     return torch.sqrt(tau_chen)
-
 
 def gat(z,sigma,alpha,g):
     _alpha=torch.ones_like(z)*alpha
@@ -238,6 +262,21 @@ def inverse_gat(z,sigma1,alpha,g,method='asym'):
     if g!=0:
         exact_inverse+=g
     return exact_inverse
+# def inverse_gat_torch(z,sigma1,alpha,g,method='asym'):
+#  #   with torch.no_grad():
+#     sigma=sigma1/alpha
+#     if method == 'closed_form':
+#         exact_inverse = (torch.pow(z/2.0, 2.0) + 0.25* torch.rsqrt(torch.tensor(1.5))*torch.pow(z, -1.0) - 11.0/8.0 * torch.pow(z, -2.0) + 5.0/8.0 * torch.rsqrt(torch.tensor(1.5)) * torch.pow(z, -3.0) -  1.0/8.0 - sigma**2 ).cuda()
+#         exact_inverse=torch.max(torch.tensor(0.0).cuda(),exact_inverse)
+#     elif method == 'asym':
+#         exact_inverse=(z/2.0)**2-1.0/8.0-sigma
+#     else:
+#         raise NotImplementedError('Only supports the closed-form')
+#     if alpha !=1:
+#         exact_inverse*=alpha
+#     if g!=0:
+#         exact_inverse+=g
+#     return exact_inverse
 
 def normalize_after_gat_torch(transformed):
     min_transform=torch.min(transformed)

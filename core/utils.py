@@ -172,6 +172,7 @@ def im2patch(im,pch_size,stride=1):
 
 def chen_estimate(im,pch_size=8):
     im=torch.squeeze(im)
+    
     #grayscale
     im=im.unsqueeze(0)
     pch=im2patch(im,pch_size,3)
@@ -187,39 +188,21 @@ def chen_estimate(im,pch_size=8):
     
     
     start=time.time()
+    # tensor operation for substituting iterative step.
+    # These operation make  parallel computing possiblie which is more efficient
 
-# tensor operation for substituting iterative step.
-# These operation make  parallel computing possiblie which is more efficient
-
-    # eigenvalue: vector to matrix (make a lower triangle for efficient computing )
-    # For example, 
-    # sig_val:  [1 2 3]
-    # sig_matrix: 1 0 0
-#                 1 2 0
-#                 1 2 3
-
-    sig_tri= torch.ones((d,d))
-    sig_tri = torch.tril(sig_tri).cuda()
-    sig_matrix= sig_tri * sig_value
+    triangle=torch.ones((d,d))
+    triangle= torch.tril(triangle).cuda()
+    sig_matrix= torch.matmul( triangle, torch.diag(sig_value)) 
     
     # calculate whole threshold value at a single time
-
-    # tau_arr:[ 1 1.5 2 ] row wise mean (without zero elements)
     num_vec= torch.arange(d)+1
     num_vec=num_vec.to(dtype=torch.float32).cuda()
     sum_arr= torch.sum(sig_matrix,dim=1)
     tau_arr=sum_arr/num_vec
     
-    # make threshold vector to matrix for directly calculate the booleans 
-    # Threshold vector also convert to lower triangle matrix  for directly comparing sig_matrix and tau_mat
-    # tau_mat:  1   0   0
-    #           1.5 1.5 0
-#               2   2   2 
-    tau_mat=torch.ones((d,d)).cuda()
-    tau_mat=tau_arr*tau_mat
-    tau_mat=tau_mat.T
-    tau_mat=torch.tril(tau_mat).cuda()
-
+    tau_mat= torch.matmul(torch.diag(tau_arr),triangle)
+    
     # find median value with masking scheme: 
     big_bool= torch.sum(sig_matrix>tau_mat,axis=1)
     small_bool= torch.sum(sig_matrix<tau_mat,axis=1)

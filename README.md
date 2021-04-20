@@ -10,6 +10,8 @@ For reproducing D-BSN and N2V, we downloaded the official code of it and made a 
 
 We cannot upload datasets for training a model because the size of dataset is too big to upload.
 
+### The final version of our code will be updated soon!
+
 ------
 
 ## 1. Train PGE-Net

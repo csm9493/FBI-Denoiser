@@ -78,7 +78,7 @@ class New_model(nn.Module):
             final_output = self.output_layer(final_output)
             
         if self.output_type=='sigmoid':
-               output[:,0]=(torch.ones_like(output[:,0])*self.sigmoid_value)*self.sigmoid(output[:,0])
+               final_output[:,0]=(torch.ones_like(final_output[:,0])*self.sigmoid_value)*self.sigmoid(final_output[:,0])
 
         return final_output
     

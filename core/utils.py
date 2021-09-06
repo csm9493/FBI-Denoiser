@@ -36,7 +36,7 @@ class TrdataLoader():
         print ('num of training patches : ', self.num_data)
 
     def __len__(self):
-        return 1000
+        return self.num_data
     
     def __getitem__(self, index):
         

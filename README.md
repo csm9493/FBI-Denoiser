@@ -1,4 +1,4 @@
-# GAN2GAN
+# FBI-Denoiser (updating..)
 
 The official code of FBI-Denoiser: Fast Blind Image Denoiser for Poisson-Gaussian Noise (Oral, CVPR 2021) [[arxiv]](https://arxiv.org/pdf/2105.10967.pdf).
 

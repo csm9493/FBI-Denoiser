@@ -13,7 +13,7 @@ $ mkdir weights
 
 ### 2. Experiment with a synthetic noise using the FiveK dataset
 
-1) Download FiveK[1] training and test dataset from [[FiveK]](https://drive.google.com/file/d/10CJDhU9iYp3Ca_T1gLdzrg4Zl2Jmw7Lj/view?usp=sharing).
+1) Download FiveK[1] raw training and test dataset from [[this link]]().
 2) Locate 'Fivek_test_set.mat' and 'Fivek_training_set.hdf5' in './data' directory.
 
 ```
@@ -33,7 +33,7 @@ $ mkdir weights
 
 ### 2. Load and evalute with pretrained weights of FBI-Net
 
-1) Download FiveK[1], FMD[2], SIDD[3] and DND[4] dataset from [[FiveK]](https://drive.google.com/file/d/10CJDhU9iYp3Ca_T1gLdzrg4Zl2Jmw7Lj/view?usp=sharing), [[FMD]](https://drive.google.com/file/d/10T9uJv0ah_kCVvpjt4OCh0Rc5fqLqwvk/view?usp=sharing), [[SIDD]](https://drive.google.com/file/d/10MI6R3vkwBKrtHhW2TKOPs56dzH8p_5t/view?usp=sharing) and [[DND]](https://drive.google.com/file/d/10MI6R3vkwBKrtHhW2TKOPs56dzH8p_5t/view?usp=sharing) respectively.
+1) Download FiveK[1], FMD[2], SIDD[3] and DND[4] test dataset from [[this link]](https://drive.google.com/file/d/139dSklT10_sCg4t5HL1z1cWY8x5seVBP/view?usp=sharing).
 
 2) Locate downloaded datasets in './data' directory.
 
@@ -47,24 +47,28 @@ $ mkdir weights
       /Fivek_test_set.mat
 ```
 
-3) Generate the synthetic Poisson-Gaussian noise test dataset 
+3) Download pretrained weights of FBI-Net from [[this link]](https://drive.google.com/file/d/134EdFVulZkmT7OyYk-a0oCWO0N8kQfpQ/view?usp=sharing).
+
+4) Locate downloaded weights in './weights' directory.
+
+5) (for synthetic noise datasets) Generate the synthetic Poisson-Gaussian noise test dataset 
 
 : Run './data/generate_fivek_synthetic_dataset.ipynb' and choice parameters(\alpha and \sigma) for the Poisson-Gaussian noise.
 
-4) Evaluate pretrained FBI-Net with test datasets
+6) Evaluate pretrained FBI-Net with test datasets
 
-: Run './evaluate_pretrained_fbi_net.sh' and analyze the results in './analysis_result_data/evaluate_pretrained_fbi_net.ipython'.
+: Run './evaluate_pretrained_fbi_net.sh' and analyze the results with './analysis_result_data/evaluate_pretrained_fbi_net.ipython'.
 
 
 #### Evaluation results
 |                  |     FiveK synthetic noises     |                              |                              |               |
 |:----------------:|:------------------------------:|:----------------------------:|:----------------------------:|:-------------:|
 | Noise parameters | \alpha = 0.01, \sigma = 0.0002 | \alpha = 0.01, \sigma = 0.02 | \alpha = 0.05, \sigma = 0.02 | Mixture noise |
-|      FBI-Net     |                                |                              |                              |               |
+|      FBI-Net     | 44.44 / 0.9569                               |   43.12 / 0.9395                           | 39.16 / 0.9132                             | 46.91 / 0.9704              |
 
 ### 3. Load and evalute with pretrained weights of PGE-Net
 
-1) Download FiveK[1], FMD[2], SIDD[3] and DND[4] dataset from [[FiveK]](https://drive.google.com/file/d/10CJDhU9iYp3Ca_T1gLdzrg4Zl2Jmw7Lj/view?usp=sharing), [[FMD]](https://drive.google.com/file/d/10T9uJv0ah_kCVvpjt4OCh0Rc5fqLqwvk/view?usp=sharing), [[SIDD]](https://drive.google.com/file/d/10MI6R3vkwBKrtHhW2TKOPs56dzH8p_5t/view?usp=sharing) and [[DND]](https://drive.google.com/file/d/10MI6R3vkwBKrtHhW2TKOPs56dzH8p_5t/view?usp=sharing) respectively.
+1) Download FiveK[1], FMD[2], SIDD[3] and DND[4] test dataset from [[this link]](https://drive.google.com/file/d/139dSklT10_sCg4t5HL1z1cWY8x5seVBP/view?usp=sharing).
 
 2) Locate downloaded datasets in './data' directory.
 
@@ -77,14 +81,17 @@ $ mkdir weights
       /test_SIDD.mat
       /Fivek_test_set.mat
 ```
+3) Download pretrained weights of PGE-Net from [[this link]](https://drive.google.com/file/d/134EdFVulZkmT7OyYk-a0oCWO0N8kQfpQ/view?usp=sharing).
 
-3) Generate the synthetic Poisson-Gaussian noise test dataset 
+4) Locate downloaded weights in './weights' directory.
+
+5) (for synthetic noise datasets) Generate the synthetic Poisson-Gaussian noise test dataset 
 
 : Run './data/generate_fivek_synthetic_dataset.ipynb' and choice parameters(\alpha and \sigma) for the Poisson-Gaussian noise.
 
-4) Evaluate pretrained PGE-Net with test datasets
+6) Evaluate pretrained PGE-Net with test datasets
 
-: Run './evaluate_pretrained_pge_net.sh' and analyze the results in './analysis_result_data/evaluate_pretrained_pge_net.ipython'.
+: Run './evaluate_pretrained_pge_net.sh' and analyze the results with './analysis_result_data/evaluate_pretrained_pge_net.ipynb'.
 
 #### Evaluation results
 |         |                  |              FiveK             |             FiveK            |             FiveK            |     FiveK     |   FMD   |   FMD   |   FMD   |     SIDD     |      DND     |

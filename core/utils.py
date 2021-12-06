@@ -98,11 +98,15 @@ class TrdataLoader():
     
 class TedataLoader():
 
-    def __init__(self,_tedata_dir=None, args = None):
+    def __init__(self,_te_data_dir=None, args = None):
 
-        self.te_data_dir = _tedata_dir
+        self.te_data_dir = _te_data_dir
         
-        self.data = h5py.File(self.te_data_dir, "r")
+        if 'SIDD' in self.te_data_dir or 'DND' in self.te_data_dir or 'CF' in self.te_data_dir or 'TP' in self.te_data_dir:
+            self.data = sio.loadmat(self.te_data_dir)
+        else:
+            self.data = h5py.File(self.te_data_dir, "r")
+            
         self.clean_arr = self.data["clean_images"]
         self.noisy_arr = self.data["noisy_images"]
         self.num_data = self.noisy_arr.shape[0]
@@ -118,9 +122,13 @@ class TedataLoader():
 
         source = self.data["noisy_images"][index,:,:]
         target = self.data["clean_images"][index,:,:]
+        
+        if 'SIDD' in self.te_data_dir or 'CF' in self.te_data_dir or 'TP' in self.te_data_dir:
+            source = source / 255.
+            target = target / 255.
 
-        source = torch.from_numpy(source.reshape(1,source.shape[0],source.shape[1])).cuda()
-        target = torch.from_numpy(target.reshape(1,target.shape[0],target.shape[1])).cuda()
+        source = torch.from_numpy(source.reshape(1,source.shape[0],source.shape[1])).float().cuda()
+        target = torch.from_numpy(target.reshape(1,target.shape[0],target.shape[1])).float().cuda()
         
         if self.args.loss_function == 'MSE_Affine' or self.args.loss_function == 'N2V':
             target = torch.cat([source,target], dim = 0)

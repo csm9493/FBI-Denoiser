@@ -27,7 +27,8 @@ def get_args():
                         help='(default=%(default)s)')
     parser.add_argument('--data-type', default='RawRGB', type=str, required=False,
                         choices=['Grayscale',
-                                 'RawRGB',],
+                                 'RawRGB',
+                                 'FMD',],
                         help='(default=%(default)s)')
     parser.add_argument('--data-name', default='BSD', type=str, required=False,
                         choices=['BSD',

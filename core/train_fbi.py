@@ -20,7 +20,9 @@ class Train_FBI(object):
     def __init__(self,_tr_data_dir=None, _te_data_dir=None, _save_file_name = None, _args = None):
         
         self.args = _args
-        self.pge_weight_dir = './weights/' + self.args.pge_weight_dir
+        
+        if self.args.pge_weight_dir != None:
+            self.pge_weight_dir = './weights/' + self.args.pge_weight_dir
         
         self.tr_data_loader = TrdataLoader(_tr_data_dir, self.args)
         self.tr_data_loader = DataLoader(self.tr_data_loader, batch_size=self.args.batch_size, shuffle=True, num_workers=0, drop_last=True)

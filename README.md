@@ -1,4 +1,4 @@
-# FBI-Denoiser (updating..)
+# FBI-Denoiser
 
 The official code of FBI-Denoiser: Fast Blind Image Denoiser for Poisson-Gaussian Noise (Oral, CVPR 2021) [[arxiv]](https://arxiv.org/pdf/2105.10967.pdf).
 
@@ -8,7 +8,7 @@ The official code of FBI-Denoiser: Fast Blind Image Denoiser for Poisson-Gaussia
 
 ```
 $ pip install -r requirements.txt
-$ mkdir weights
+$ mkdir weights result_data
 ```
 
 ### 2. Experiment with a synthetic noise using the FiveK dataset
@@ -28,7 +28,7 @@ $ mkdir weights
 
 4) Train PGE-Net and FBI-Net sequentially.
 
-: Adjust \alpha and \sigma in 'experiment_synthetic_noise.sh', and run it.
+: Adjust \alpha and \sigma in 'train_FBI_PGE_Net_synthetic_noise.sh', and run it.
 
 
 ### 2. Load and evalute with pretrained weights of FBI-Net
@@ -57,14 +57,19 @@ $ mkdir weights
 
 6) Evaluate pretrained FBI-Net with test datasets
 
-: Run './evaluate_pretrained_fbi_net.sh' and analyze the results with './analysis_result_data/evaluate_pretrained_fbi_net.ipython'.
+: Run './evaluate_pretrained_fbi_net.sh'.
 
 
 #### Evaluation results
-|                  |     FiveK synthetic noises     |                              |                              |               |
+|                  |     FiveK synthetic Poisson-Gaussian noises     |                              |                              |               |
 |:----------------:|:------------------------------:|:----------------------------:|:----------------------------:|:-------------:|
 | Noise parameters | \alpha = 0.01, \sigma = 0.0002 | \alpha = 0.01, \sigma = 0.02 | \alpha = 0.05, \sigma = 0.02 | Mixture noise |
-|      FBI-Net     | 44.44 / 0.9569                               |   43.12 / 0.9395                           | 39.16 / 0.9132                             | 46.91 / 0.9704              |
+|      FBI-Net     | 44.44 / 0.9569                               |   43.08 / 0.9384                           | 39.00 / 0.9099                             | 46.91 / 0.9704              |
+
+| Real Noise Datasets |       FMD      |       FMD       |       FMD      |      SIDD          |   DND  |
+|:-------------------:|:--------------:|:---------------:|:--------------:|:--------------:|:---:|
+|                     |     CF FISH    |     CF MICE     |     TP MICE    |      Validation Dataset      | Validation Dataset |
+|       FBI-Net       | 32.29 / 0.8873 | 38.31 / 0.99637 | 33.93 / 0.9087 | 51.26 / 0.9273 |  39.65 / 0.8928   |
 
 ### 3. Load and evalute with pretrained weights of PGE-Net
 
@@ -91,14 +96,14 @@ $ mkdir weights
 
 6) Evaluate pretrained PGE-Net with test datasets
 
-: Run './evaluate_pretrained_pge_net.sh' and analyze the results with './analysis_result_data/evaluate_pretrained_pge_net.ipynb'.
+: Run './evaluate_pretrained_pge_net.sh'.
 
 #### Evaluation results
 |         |                  |              FiveK             |             FiveK            |             FiveK            |     FiveK     |   FMD   |   FMD   |   FMD   |     SIDD     |      DND     |
 |:-------:|:----------------:|:------------------------------:|:----------------------------:|:----------------------------:|:-------------:|:-------:|:-------:|:-------:|:------------:|:------------:|
-|         | Noise parameters | \alpha = 0.01, \sigma = 0.0002 | \alpha = 0.01, \sigma = 0.02 | \alpha = 0.05, \sigma = 0.02 | Mixture Noise | CF FISH | CF MICE | TP MICE | Test Dataset | Test Dataset |
-| PGE-Net |    \alpha_hat    |                                |                              |                              |               |         |         |         |              |              |
-| PGE-Net |    \sigma_hat    |                                |                              |                              |               |         |         |         |              |              |
+|         | Noise parameters | \alpha = 0.01, \sigma = 0.0002 | \alpha = 0.01, \sigma = 0.02 | \alpha = 0.05, \sigma = 0.02 | Mixture Noise | CF FISH | CF MICE | TP MICE | Validation | Validation |
+| PGE-Net |    \alpha_hat    |      0.0101                          |           0.0142                   |       0.0398                       |    0.0028           |   0.0357      |   0.0120      |  0.023       |     0.0086         |    0.0.0016         |
+| PGE-Net |    \sigma_hat    |      0.000006                          |         0.005267                     |        0.003603                      |   0.003851            |   0.000417      | 0.000697       |  0.00025       |     0.003954         |    0.0.006833          |
 
 ## QnA
 ### 1. Where is the code for generating the synthetic Poissian Gaussian noise?
@@ -109,7 +114,7 @@ $ mkdir weights
 
 : The detailed dicussion and experimental results are proposed in Section 5.2 of the paper. We showed that, even though \sigma is underestimated, it did not significantly affect the denoising performance of using GAT+BM3D and FBI-Net (see Table 4 and 5 of the paper).
 
-### If you have any questions or problems to implement this code, please mail to sungmin.cha@snu.ac.kr. Thank you!
+### If you have any questions or problems to run this code, please mail to sungmin.cha@snu.ac.kr. Thank you!
 
 ## Citation
 

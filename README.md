@@ -103,7 +103,7 @@ $ mkdir weights result_data
 | PGE-Net |    \alpha_hat    |      0.0101                          |           0.0142                   |       0.0398                       |    0.0028           |   0.0357      |   0.0120      |  0.023       |     0.0086         |    0.0.0016         |
 | PGE-Net |    \sigma_hat    |      0.000006                          |         0.005267                     |        0.003603                      |   0.003851            |   0.000417      | 0.000697       |  0.00025       |     0.003954         |    0.0.006833          |
 
-### 4. Evaluate a denoising performance of the pretrained FBI-Net with SIDD and DND benchmark datasets
+### 4. Evaluate a denoising performance of the pretrained FBI-Net with SIDD and DND benchmark datasets (updating..)
 
 1) Download SIDD[3] and DND[4] test dataset from [[this link]](https://drive.google.com/file/d/139dSklT10_sCg4t5HL1z1cWY8x5seVBP/view?usp=sharing).
 

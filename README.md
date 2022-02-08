@@ -30,7 +30,7 @@ $ mkdir weights result_data
 : Adjust \alpha and \sigma in 'train_FBI_PGE_Net_synthetic_noise.sh', and run it.
 
 
-### 2. Load and evalute a denoising performance with a pretrained FBI- and PGE-Net
+### 3. Load and evalute a denoising performance with a pretrained FBI- and PGE-Net
 
 1) Download FiveK[1] and FMD[2] test dataset from [[this link]](https://drive.google.com/file/d/139dSklT10_sCg4t5HL1z1cWY8x5seVBP/view?usp=sharing).
 
@@ -68,7 +68,7 @@ $ mkdir weights result_data
 |                     |     CF FISH    |     CF MICE     |     TP MICE    |
 |       FBI-Net       | 32.29 / 0.8873 | 38.31 / 0.99637 | 33.93 / 0.9087 |
 
-### 3. Estimate noise parameters with a pretrained PGE-Net
+### 4. Estimate noise parameters with a pretrained PGE-Net
 
 1) Download FiveK[1], FMD[2], SIDD[3] and DND[4] test dataset from [[this link]](https://drive.google.com/file/d/139dSklT10_sCg4t5HL1z1cWY8x5seVBP/view?usp=sharing).
 
@@ -102,7 +102,7 @@ $ mkdir weights result_data
 | PGE-Net |    \alpha_hat    |      0.0101                          |           0.0142                   |       0.0398                       |    0.0028           |   0.0357      |   0.0120      |  0.023       |     0.0086         |    0.0.0016         |
 | PGE-Net |    \sigma_hat    |      0.000006                          |         0.005267                     |        0.003603                      |   0.003851            |   0.000417      | 0.000697       |  0.00025       |     0.003954         |    0.0.006833          |
 
-### 4. Evaluate a denoising performance of the pretrained FBI-Net with SIDD and DND benchmark datasets (updating..)
+### 5. Evaluate a denoising performance of the pretrained FBI-Net with SIDD and DND benchmark datasets (updating..)
 
 1) Download SIDD[3] and DND[4] test dataset from [[this link]](https://drive.google.com/file/d/139dSklT10_sCg4t5HL1z1cWY8x5seVBP/view?usp=sharing).
 

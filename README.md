@@ -7,7 +7,6 @@ The official code of FBI-Denoiser: Fast Blind Image Denoiser for Poisson-Gaussia
 ### 1. Requirements
 
 ```
-$ pip install -r requirements.txt
 $ mkdir weights result_data
 ```
 
